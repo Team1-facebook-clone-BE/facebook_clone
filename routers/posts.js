@@ -3,7 +3,6 @@ const Posts = require('../schemas/posts')
 const Likes = require('../schemas/like')
 const jwt = require('jsonwebtoken')
 const authMiddleware = require('../middlewares/auth-middleware')
-const posts = require('../schemas/posts')
 
 const router = express.Router()
 
@@ -20,10 +19,10 @@ router.post("/like/:postId", authMiddleware, async (req, res) => {
 
     if (likeExist) {
         await Likes.findByIdAndDelete(likeExist)
-        result = { data = false }
+        result = { data: false }
     } else {
         await Likes.create({ user: user, postId: postId })
-        result = { data = true }
+        result = { data: true }
     }
 })
 module.exports = router

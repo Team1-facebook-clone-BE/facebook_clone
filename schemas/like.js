@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
-const PostsSchema = new mongoose.Schema({
+const LikeSchema = new mongoose.Schema({
     postId: Number,
     userId: String,
 })
-module.exports = mongoose.model('Posts', PostsSchema)
+module.exports = mongoose.model('Like', LikeSchema)

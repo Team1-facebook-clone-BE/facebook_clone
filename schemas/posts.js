@@ -7,5 +7,6 @@ const PostsSchema = new mongoose.Schema({
     img: String,
     content: String,
     createAt: String,
+    likeCnt: Number,
 })
 module.exports = mongoose.model('Posts', PostsSchema)

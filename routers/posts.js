@@ -32,6 +32,7 @@ router.post('/post', authMiddleware, upload.single('img'), async (req, res) => {
     // console.log(req.file)
     const { userId, userName } = res.locals.user
     const { content } = req.body
+    const likeCnt = 0
     const createAt = new Date(+new Date() + 3240 * 10000)
         .toISOString()
         .replace('T', ' ')
@@ -52,6 +53,7 @@ router.post('/post', authMiddleware, upload.single('img'), async (req, res) => {
         img,
         content,
         createAt,
+        likeCnt,
     })
 
     res.send({ result: 'success' })
@@ -94,6 +96,7 @@ router.put(
                             content,
                             img,
                             createAt: existId.createAt,
+                            likeCnt: existId.likeCnt,
                         },
                     }
                 )

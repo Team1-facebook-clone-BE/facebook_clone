@@ -127,6 +127,12 @@ router.delete('/post/:postId', authMiddleware, async (req, res) => {
         if (postsExist && commentsExist) {
             await Comments.deleteMany({ postId })
             await Posts.deleteOne({ postId })
+            fs.unlink(`public${postsExist.img}`, (err)=>{
+                if(err){
+                    console.log(err)
+                    return
+                }
+            })
             res.send({ result: 'success' })
         } else if (postsExist) {
             await Posts.deleteOne({ postId })

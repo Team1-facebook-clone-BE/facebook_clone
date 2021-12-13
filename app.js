@@ -3,6 +3,10 @@ const app = express()
 const port = 3000
 const jwt = require('jsonwebtoken')
 const authMiddleware = require('./middlewares/auth-middleware')
+const swaggerUi = require("swagger-ui-express");
+const swaggerFile = require("./swagger-output");
+
+app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
 const postsRouter = require('./routers/posts')
 const userRouter = require('./routers/user')

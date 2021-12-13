@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const LikeSchema = new mongoose.Schema({
     postId: Number,
-    userId: String,
+    userId: Number,
 })
 
 module.exports = mongoose.model('Like', LikeSchema)

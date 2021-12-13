@@ -1,6 +1,8 @@
 const express = require('express')
+const fs = require('fs')
 const router = express.Router()
 const Posts = require('../schemas/posts')
+const Comments = require('../schemas/comments')
 const jwt = require('jsonwebtoken')
 const path = require('path');
 const authMiddleware = require('../middlewares/auth-middleware')
@@ -55,20 +57,17 @@ router.post('/post', authMiddleware, upload.single('img'), async (req, res) => {
     res.send({ result: 'success' })
 })
 // 게시글 수정페이지 로딩
-router.get('/modify/:postId', authMiddleware, async (req, res) => {
-    const { postId } = req.params
-    const post = await Posts.findOne({ postId: postId })
-
-    res.json({ post })
-})
 
 router.get("/modify/:postId", async (req, res, next) => {
     try {
         const { postId } = req.params;
         const post = await Posts.findOne({ postId }).exec();
-        res.json({ post });
-    } catch (error) {
-        res.render("error");
+        res.json({ ...post });
+    } catch (err) {
+        console.error(err)
+        res.status(400).send({
+            errorMessage: err,
+        })
     }
 });
 // 게시글 수정
@@ -78,10 +77,10 @@ router.put(
     upload.single('img'),
     async (req, res, next) => {
         try {
-            const { userId } = res.locals.user
+            const { userId,userName } = res.locals.user
             const { content } = req.body
             const { postId } = req.params
-            let img = req.file.location
+            const img = `/images/${req.file.filename}`
 
             const existId = await Posts.findOne({ postId, userId })
             if (existId.length !== 0) {
@@ -114,15 +113,24 @@ router.delete('/post/:postId', authMiddleware, async (req, res) => {
     try {
         const { postId } = req.params
         const { userId } = res.locals.user
+        console.log(1)
         const postsExist = await Posts.findOne({ postId, userId })
+        console.log(2)
         const commentsExist = await Comments.findOne({ postId })
-
+        console.log(3)
         if (postsExist && commentsExist) {
             await Comments.deleteMany({ postId })
             await Posts.deleteOne({ postId })
             res.send({ result: 'success' })
         } else if (postsExist) {
             await Posts.deleteOne({ postId })
+            fs.unlink(`public${postsExist.img}`, (err)=>{
+                if(err){
+                    console.log(err)
+                    return
+                }
+            })
+            
             res.send({ result: 'success' })
         } else {
             res.send({ result: 'fail' })

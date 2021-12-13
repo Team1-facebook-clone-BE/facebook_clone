@@ -1,28 +1,23 @@
 const express = require('express')
+const router = express.Router()
 const Posts = require('../schemas/posts')
 const jwt = require('jsonwebtoken')
+const path = require('path');
 const authMiddleware = require('../middlewares/auth-middleware')
 const multer = require('multer')
 
 // 이미지파일 처리
-const upload = multer({
-    storage: multer.diskStorage({
-        destination: function (req, file, cb) {
-            cb(null, 'uploads/')
-        },
-        filename: function (req, file, cb) {
-            cb(null, `${Date.now()}_${file.originalname}`)
-        },
-        fileFilter: function (req, file, cb) {
-            const ext = path.extname(file.originalname)
-            if (ext !== '.gif' || ext !== '.png' || ext !== '.jpg' || ext !== '.jpeg') {
-                return cb(res.status(400).end('잘못된 파일 형식입니다.'), false)
-            }
-            cb(null, true)
-        },
-    }),
-})
-const router = express.Router()
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, "public/images/");
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname);
+        cb(null, path.basename(file.originalname, ext) + "-" + Date.now() + ext);
+    }
+});
+
+var upload = multer({ storage: storage});
 
 // 메인페이지 모든 포스팅 보여주기
 router.get('/post', async (req, res) => {
@@ -30,16 +25,16 @@ router.get('/post', async (req, res) => {
     res.json(Post)
 })
 
-// 포스팅 게시
+// 게시글 업로드
 router.post('/post', authMiddleware, upload.single('img'), async (req, res) => {
-    console.log(req.file)
+    // console.log(req.file)
     const { userId, userName } = res.locals.user
     const { content } = req.body
     const createAt = new Date(+new Date() + 3240 * 10000)
         .toISOString()
         .replace('T', ' ')
         .replace(/\..*/, '')
-    let img = req.file.location
+    let img = `/images/${req.file.filename}`
     console.log('img_url' + img)
     let postId = await Posts.find({}).sort('-postId').limit(1)
     if (postId.length == 0) {

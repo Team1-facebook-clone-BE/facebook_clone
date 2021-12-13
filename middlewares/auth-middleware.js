@@ -33,6 +33,7 @@ module.exports = (req, res, next) => {
             .then((user) => {
                 // async가 없으므로 await은 안됨. promise then
                 res.locals.user = user
+                console.log(res.locals)
                 next()
             })
     } catch (error) {

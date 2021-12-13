@@ -97,6 +97,12 @@ router.put(
                         },
                     }
                 )
+                fs.unlink(`public${existId.img}`, (err)=>{
+                    if(err){
+                        console.log(err)
+                        return
+                    }
+                })
                 res.send({ result: 'success' })
             }
         } catch (err) {

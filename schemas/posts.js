@@ -5,6 +5,5 @@ const PostsSchema = new mongoose.Schema({
     userId: String,
     userName: String,
     content: String,
-    likeCnt: Number,
 })
 module.exports = mongoose.model('Posts', PostsSchema)

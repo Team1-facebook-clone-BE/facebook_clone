@@ -26,7 +26,12 @@ router.get('/post', async (req, res) => {
     const Post = await Posts.find({}).sort('-postId')
     res.json(Post)
 })
-
+// 게시글 상세
+router.get('/post/:postId', async (req, res)=> {
+    const { postId } = req.params // => 질문 
+    const Post = await Posts.findOne({ postId })
+    res.json(Post)
+})
 // 게시글 업로드
 router.post('/post', authMiddleware, upload.single('img'), async (req, res) => {
     // console.log(req.file)
@@ -59,7 +64,6 @@ router.post('/post', authMiddleware, upload.single('img'), async (req, res) => {
     res.send({ result: 'success' })
 })
 // 게시글 수정페이지 로딩
-
 router.get("/modify/:postId", async (req, res, next) => {
     try {
         const { postId } = req.params;

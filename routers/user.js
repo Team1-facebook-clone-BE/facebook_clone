@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken')
 const router = express.Router()
 const User = require('../schemas/users')
 const bcrypt = require('bcrypt')
-const joi = require('joi')
 const authMiddleware = require('../middlewares/auth-middleware')
 const Joi = require('joi')
 
@@ -55,7 +54,7 @@ router.post('/register', async (req, res) => {
     // bcrypt
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
-    console.log("bcrypt 작동 확인")
+    // console.log("bcrypt 작동 확인")
 
     const createdAt = new Date(+new Date() + 3240 * 10000)
       .toISOString()
@@ -83,9 +82,9 @@ const loginSchema = Joi.object({
 // 로그인
 router.post('/login', async (req, res) => {
   const { userEmail, password } = await loginSchema.validateAsync(req.body)
-  console.log( userEmail, password )
+  // console.log( userEmail, password )
   const user = await User.findOne({ userEmail }).exec()
-  console.log(user)
+  // console.log(user)
   if (!user) {
     res.status(400).send({
       errorMessage: "이메일 또는 비밀번호를 확인해주세요.", success: false
@@ -106,6 +105,34 @@ router.post('/login', async (req, res) => {
       errorMessage: "이메일 또는 비밀번호가 잘못됐습니다.", success: false
     })
     return
+  }
+})
+
+// 로그인 인증
+router.get('/me', authMiddleware, async(req, res) => {
+  const { user } = res.locals
+  // console.log("##########사용자 정보##########", res.locals)
+  res.send({
+    user: {
+      userId:user.userId,
+      userEmail:user.userEmail,
+      userName:user.userName
+    }
+  })
+})
+
+// 검색
+router.post('/post/search', async(req, res) => {
+  // 검색창에 user 검색
+  const searchUser = req.body;
+  // console.log(searchUser['userName'])
+  try{
+    const tag = searchUser['userName'].trim();
+    const search = await User.find({ userName: new RegExp(tag,'i')}).sort('-createdAt')
+    res.status(200).send({ result: {search}})
+    // console.log(search)
+  } catch(error){
+    res.status(400).send({ errorMessage: "검색중 오류 발생"})
   }
 })
 

@@ -39,7 +39,7 @@ router.post('/post', authMiddleware, upload.single('img'), async (req, res) => {
     const { userId, userName } = res.locals.user
     const { content } = req.body
     const likeCnt = 0
-    const createAt = new Date(+new Date() + 3240 * 10000)
+    const createdAt = new Date(+new Date() + 3240 * 10000)
         .toISOString()
         .replace('T', ' ')
         .replace(/\..*/, '')
@@ -58,7 +58,7 @@ router.post('/post', authMiddleware, upload.single('img'), async (req, res) => {
         userName,
         img,
         content,
-        createAt,
+        createdAt,
         likeCnt,
     })
 
@@ -79,7 +79,7 @@ router.get("/modify/:postId", async (req, res, next) => {
 });
 // 게시글 수정
 router.put(
-    '/modify/:postId',
+    '/post/:postId',
     authMiddleware,
     upload.single('img'),
     async (req, res, next) => {
@@ -100,7 +100,7 @@ router.put(
                             userName,
                             content,
                             img,
-                            createAt: existId.createAt,
+                            createdAt: existId.createdAt,
                             likeCnt: existId.likeCnt,
                         },
                     }

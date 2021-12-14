@@ -57,12 +57,12 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
     console.log("bcrypt 작동 확인")
 
-    const createAt = new Date(+new Date() + 3240 * 10000)
+    const createdAt = new Date(+new Date() + 3240 * 10000)
       .toISOString()
       .replace('T', ' ')
       .replace(/\..*/, '')
     
-    await User.create({ userId, userName, userEmail, hashedPassword, createAt });
+    await User.create({ userId, userName, userEmail, hashedPassword, createdAt });
 
     res.status(201).send({
       result: "회원가입 완료"

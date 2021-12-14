@@ -81,8 +81,21 @@ router.get("/modify/:postId", authMiddleware, async (req, res, next) => {
 // 게시글 수정
 router.put(
     '/post/:postId',
-    authMiddleware, upload.single('img'),
-    async (req, res, next) => {
+    authMiddleware, async (req, res, next)=>{
+        const {postId} = req.params
+        const {userId} = res.locals.user
+        const thisPost = await Posts.findOne({ postId })
+        
+        if(thisPost.userId == userId){
+            upload.single('img')
+            next()
+            
+        }else{
+            res.send({ errorMessage : "글을 작성한 유저가 아닙니다."})
+        }
+        
+    },upload.single('img'),
+    async (req, res) => {
         try {
             const { userId, userName } = res.locals.user
             const { content } = req.body

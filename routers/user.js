@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken')
 const router = express.Router()
 const User = require('../schemas/users')
 const bcrypt = require('bcrypt')
-const joi = require('joi')
 const authMiddleware = require('../middlewares/auth-middleware')
 const Joi = require('joi')
 

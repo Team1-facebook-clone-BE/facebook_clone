@@ -35,7 +35,7 @@ router.get('/post/:postId', async (req, res) => {
 })
 // 게시글 업로드
 router.post('/post', authMiddleware, upload.single('img'), async (req, res) => {
-    // console.log(req.file)
+    console.log(req.file)
     const { userId, userName } = res.locals.user
     const { content } = req.body
     const likeCnt = 0
@@ -65,10 +65,11 @@ router.post('/post', authMiddleware, upload.single('img'), async (req, res) => {
     res.send({ result: 'success' })
 })
 // 게시글 수정페이지 로딩
-router.get("/modify/:postId",authMiddleware, async (req, res, next) => {
+router.get("/modify/:postId", authMiddleware, async (req, res, next) => {
     try {
         const { postId } = req.params;
-        const post = await Posts.findOne({ postId }).exec();
+        const { userId } = res.locals.user
+        const post = await Posts.findOne({ postId, userId }).exec();
         res.json({ ...post });
     } catch (err) {
         console.error(err)
@@ -80,17 +81,19 @@ router.get("/modify/:postId",authMiddleware, async (req, res, next) => {
 // 게시글 수정
 router.put(
     '/post/:postId',
-    authMiddleware,
-    upload.single('img'),
+    authMiddleware, upload.single('img'),
     async (req, res, next) => {
         try {
             const { userId, userName } = res.locals.user
             const { content } = req.body
             const { postId } = req.params
+            const existId = await Posts.findOne({ postId, userId })
             const img = `/images/${req.file.filename}`
 
-            const existId = await Posts.findOne({ postId, userId })
-            if (existId.length !== 0) {
+            console.log(existId)
+            if (existId !== null) {
+
+                console.log("if 들어옴")
                 await Posts.updateOne(
                     { postId },
                     {
@@ -114,9 +117,10 @@ router.put(
                 res.send({ result: 'success' })
             }
         } catch (err) {
+            console.log('작성한 유저가 아님.')
             console.error(err)
             res.status(400).send({
-                errorMessage: err,
+                errorMessage: err
             })
         }
     }
@@ -153,6 +157,7 @@ router.delete('/post/:postId', authMiddleware, async (req, res) => {
 
             res.send({ result: 'success' })
         } else {
+            console.log("작성한 유저가 아님")
             res.send({ result: 'fail' })
         }
     } catch (err) { }

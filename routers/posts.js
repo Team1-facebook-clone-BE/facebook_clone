@@ -159,15 +159,16 @@ router.delete('/post/:postId', authMiddleware, async (req, res) => {
 router.post("/:postId/like", authMiddleware, async (req, res) => {
     const { userId } = res.locals.user  // 구조 분해 할당으로 {}안에 필드값을 써주면 해당하는 필드값을 찾아줌?
     const { postId } = req.params
-    const likeCnt = await Posts.findOne({ postId: postId })
+    const postExist = await Posts.findOne({ postId: postId })
     const likeExist = await Likes.findOne({ userId: userId, postId: postId })
+    console.log(postExist)
 
     // 좋아요
-    if (!likeExist) {   // likeExist안에 userId, postId가 없으면
+    if (!likeExist) {   // userId, postId가 없으면
         await Likes.create({ userId: userId, postId: postId })  // userId, postId를 create를 해주고
         await Posts.updateOne(
             { postId: postId },
-            { $set: { likeCnt: likeCnt + 1 } }
+            { $set: { likeCnt: postExist.likeCnt + 1 } }    // likCnt에 + 1을 해준다.
         )
         res.send(result = { data: false })  // return이랑 비슷한게 res.send()
     }
@@ -176,7 +177,7 @@ router.post("/:postId/like", authMiddleware, async (req, res) => {
         await Likes.deleteOne({ userId: userId, postId: postId })   // userId와 postId를 삭제해준다.
         await Posts.updateOne(
             { postId: postId },
-            { $set: { likeCnt: likeCnt - 1 } }
+            { $set: { likeCnt: postExist.likeCnt - 1 } }    // likeCnt에 - 1을 해준다.
         )
         res.send(result = { data: true })
     }

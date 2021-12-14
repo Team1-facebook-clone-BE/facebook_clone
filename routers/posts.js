@@ -1,11 +1,14 @@
 const express = require('express')
+const fs = require('fs')
 const router = express.Router()
 const Posts = require('../schemas/posts')
 const Likes = require('../schemas/like')
+const Comments = require('../schemas/comments')
 const jwt = require('jsonwebtoken')
 const path = require('path');
 const authMiddleware = require('../middlewares/auth-middleware')
 const multer = require('multer')
+const posts = require('../schemas/posts')
 
 // 이미지파일 처리
 var storage = multer.diskStorage({
@@ -31,6 +34,7 @@ router.post('/post', authMiddleware, upload.single('img'), async (req, res) => {
     // console.log(req.file)
     const { userId, userName } = res.locals.user
     const { content } = req.body
+    const likeCnt = 0
     const createAt = new Date(+new Date() + 3240 * 10000)
         .toISOString()
         .replace('T', ' ')
@@ -51,25 +55,23 @@ router.post('/post', authMiddleware, upload.single('img'), async (req, res) => {
         img,
         content,
         createAt,
+        likeCnt,
     })
 
     res.send({ result: 'success' })
 })
 // 게시글 수정페이지 로딩
-router.get('/modify/:postId', authMiddleware, async (req, res) => {
-    const { postId } = req.params
-    const post = await Posts.findOne({ postId: postId })
-
-    res.json({ post })
-})
 
 router.get("/modify/:postId", async (req, res, next) => {
     try {
         const { postId } = req.params;
         const post = await Posts.findOne({ postId }).exec();
-        res.json({ post });
-    } catch (error) {
-        res.render("error");
+        res.json({ ...post });
+    } catch (err) {
+        console.error(err)
+        res.status(400).send({
+            errorMessage: err,
+        })
     }
 });
 // 게시글 수정
@@ -79,10 +81,10 @@ router.put(
     upload.single('img'),
     async (req, res, next) => {
         try {
-            const { userId } = res.locals.user
+            const { userId, userName } = res.locals.user
             const { content } = req.body
             const { postId } = req.params
-            let img = req.file.location
+            const img = `/images/${req.file.filename}`
 
             const existId = await Posts.findOne({ postId, userId })
             if (existId.length !== 0) {
@@ -96,9 +98,16 @@ router.put(
                             content,
                             img,
                             createAt: existId.createAt,
+                            likeCnt: existId.likeCnt,
                         },
                     }
                 )
+                fs.unlink(`public${existId.img}`, (err) => {
+                    if (err) {
+                        console.log(err)
+                        return
+                    }
+                })
                 res.send({ result: 'success' })
             }
         } catch (err) {
@@ -115,15 +124,30 @@ router.delete('/post/:postId', authMiddleware, async (req, res) => {
     try {
         const { postId } = req.params
         const { userId } = res.locals.user
+        console.log(1)
         const postsExist = await Posts.findOne({ postId, userId })
+        console.log(2)
         const commentsExist = await Comments.findOne({ postId })
-
+        console.log(3)
         if (postsExist && commentsExist) {
             await Comments.deleteMany({ postId })
             await Posts.deleteOne({ postId })
+            fs.unlink(`public${postsExist.img}`, (err) => {
+                if (err) {
+                    console.log(err)
+                    return
+                }
+            })
             res.send({ result: 'success' })
         } else if (postsExist) {
             await Posts.deleteOne({ postId })
+            fs.unlink(`public${postsExist.img}`, (err) => {
+                if (err) {
+                    console.log(err)
+                    return
+                }
+            })
+
             res.send({ result: 'success' })
         } else {
             res.send({ result: 'fail' })
@@ -131,17 +155,30 @@ router.delete('/post/:postId', authMiddleware, async (req, res) => {
     } catch (err) { }
 })
 
+// 좋아요 추가 및 취소
 router.post("/:postId/like", authMiddleware, async (req, res) => {
-    const user = res.locals.user
+    const { userId } = res.locals.user  // 구조 분해 할당으로 {}안에 필드값을 써주면 해당하는 필드값을 찾아줌?
     const { postId } = req.params
-    const likeExist = await Posts.findOne({ user: user, postId: postId })
+    const likeCnt = await Posts.findOne({ postId: postId })
+    const likeExist = await Likes.findOne({ userId: userId, postId: postId })
 
-    if (likeExist) {
-        await Likes.findByIdAndDelete(likeExist)
-        result = { data: false }
-    } else {
-        await Likes.create({ user: user, postId: postId })
-        result = { data: true }
+    // 좋아요
+    if (!likeExist) {   // likeExist안에 userId, postId가 없으면
+        await Likes.create({ userId: userId, postId: postId })  // userId, postId를 create를 해주고
+        await Posts.updateOne(
+            { postId: postId },
+            { $set: { likeCnt: likeCnt + 1 } }
+        )
+        res.send(result = { data: false })  // return이랑 비슷한게 res.send()
+    }
+    // 좋아요 취소
+    else {    // userId와 postId가 있으면
+        await Likes.deleteOne({ userId: userId, postId: postId })   // userId와 postId를 삭제해준다.
+        await Posts.updateOne(
+            { postId: postId },
+            { $set: { likeCnt: likeCnt - 1 } }
+        )
+        res.send(result = { data: true })
     }
 })
 

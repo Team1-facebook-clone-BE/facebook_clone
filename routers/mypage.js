@@ -29,16 +29,11 @@ router.get('/mypage/posts/:userId', authMiddleware, async (req, res) => {
 // 내 정보 수정
 router.patch('/mypage/:userId', authMiddleware, async (req, res) => {
     const { userId } = req.params
-    const { userName, Password, confirmPwd } = req.body
+    const { userName } = req.body
     const user = await Users.findOne({ userId: userId })
     const nickName = user.userName
 
-    if (Password !== confirmPwd) {
-        res.status(400).send({
-            errorMessage: '비밀번호가 일치하지 않습니다.'
-        })
-        return
-    } else if (nickName) {
+    if (nickName) {
         await Users.updateOne({ userId: userId }, { $set: { userName: userName } })
         await Comment.updateMany({ userId: userId }, { $set: { userName: userName } })
         await Posts.updateMany({ userId: userId }, { $set: { userName: userName } })

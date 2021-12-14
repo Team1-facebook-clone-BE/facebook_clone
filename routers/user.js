@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken')
 const router = express.Router()
 const User = require('../schemas/users')
 const bcrypt = require('bcrypt')
-const joi = require('joi')
 const authMiddleware = require('../middlewares/auth-middleware')
 const Joi = require('joi')
 
@@ -120,7 +119,21 @@ router.get('/me', authMiddleware, async(req, res) => {
       userName:user.userName
     }
   })
+})
 
+// 검색
+router.post('/post/search', async(req, res) => {
+  // 검색창에 user 검색
+  const searchUser = req.body;
+  // console.log(searchUser['userName'])
+  try{
+    const tag = searchUser['userName'].trim();
+    const search = await User.find({ userName: new RegExp(tag,'i')}).sort('-createdAt')
+    res.status(200).send({ result: {search}})
+    // console.log(search)
+  } catch(error){
+    res.status(400).send({ errorMessage: "검색중 오류 발생"})
+  }
 })
 
 module.exports = router

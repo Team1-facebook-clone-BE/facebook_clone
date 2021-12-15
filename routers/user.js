@@ -11,7 +11,6 @@ const registerSchema = Joi.object({
   userName: Joi.string().pattern(new RegExp("^[ㄱ-ㅎ|ㅏ-ㅣ|가-힣\\s|0-9a-zA-z]{2,10}$")).required(),
   userEmail: Joi.string().pattern(new RegExp("^[0-9a-zA-Z]([-_\\.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_\\.]?[0-9a-zA-Z])*\\.[a-zA-Z]{2,6}$")).required(),
   password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{4,30}$')).required(),
-  confirmPassword: Joi.string().required(),
 })
 
 // 회원가입
@@ -23,7 +22,7 @@ router.post('/register', async (req, res) => {
       userId = recentUser[0]['userId'] + 1
     }
 
-    const { userName, userEmail, password, confirmPassword } = await registerSchema.validateAsync(req.body)
+    const { userName, userEmail, password } = await registerSchema.validateAsync(req.body)
     if (userName === password) {
       res.status(400).send({
         errorMessage: "아이디, 비밀번호가 같습니다."
@@ -42,11 +41,6 @@ router.post('/register', async (req, res) => {
     if (eMail.length !== 0) {
       res.status(400).send({
         errorMessage: "이메일이 중복되었습니다."
-      })
-      return
-    } else if (password !== confirmPassword) {
-      res.status(400).send({
-        errorMessage: "동일한 비밀번호가 아닙니다."
       })
       return
     }
@@ -121,16 +115,17 @@ router.get('/me', authMiddleware, async(req, res) => {
   })
 })
 
+
 // 검색
 router.post('/post/search', async(req, res) => {
   // 검색창에 user 검색
   const searchUser = req.body;
-  // console.log(searchUser['userName'])
+  console.log(searchUser['userName'])
   try{
     const tag = searchUser['userName'].trim();
     const search = await User.find({ userName: new RegExp(tag,'i')}).sort('-createdAt')
     res.status(200).send({ result: {search}})
-    // console.log(search)
+    console.log(search)
   } catch(error){
     res.status(400).send({ errorMessage: "검색중 오류 발생"})
   }

@@ -22,7 +22,7 @@ router.get('/mypage/:userId', authMiddleware, async (req, res) => {
 // 내가 작성한 게시물 조회
 router.get('/mypage/posts/:userId', authMiddleware, async (req, res) => {
     const { userId } = req.params
-    const posts = await Posts.findOne({ userId: userId })
+    const posts = await Posts.find({ userId: userId })
     res.send({ posts: posts })
 })
 

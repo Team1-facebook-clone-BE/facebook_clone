@@ -2,7 +2,8 @@ const mongoose = require('mongoose')
 
 const connect = () => {
     mongoose
-        .connect('mongodb://127.0.0.1:27017/facebook', {
+        .connect('mongodb://test:test@localhost:27017/facebook',{
+            // 'mongodb://127.0.0.1:27017/facebook', {
             useNewUrlParser: true,
             useUnifiedTopology: true,
             ignoreUndefined: true,

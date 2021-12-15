@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken')
 const path = require('path')
 const authMiddleware = require('../middlewares/auth-middleware')
 const multer = require('multer')
+const like = require('../schemas/like')
 
 // 이미지파일 처리
 var storage = multer.diskStorage({
@@ -149,6 +150,8 @@ router.delete('/post/:postId', authMiddleware, async (req, res) => {
         if (postsExist && commentsExist) {
             await Comments.deleteMany({ postId })
             await Posts.deleteOne({ postId })
+            await Likes.deleteMany({ postId })
+            
             fs.unlink(`public${postsExist.img}`, (err) => {
                 if (err) {
                     console.log(err)
@@ -158,6 +161,7 @@ router.delete('/post/:postId', authMiddleware, async (req, res) => {
             res.send({ result: 'success' })
         } else if (postsExist) {
             await Posts.deleteOne({ postId })
+            await Likes.deleteMany({ postId })
             fs.unlink(`public${postsExist.img}`, (err) => {
                 if (err) {
                     console.log(err)

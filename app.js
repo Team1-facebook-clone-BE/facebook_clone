@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors')
+app.use(cors())
 const app = express()
 const port = 3000
 const path = require('path');
@@ -14,7 +15,7 @@ const swaggerFile = require('./swagger-output')
 //     origin: '*', 
 //     credentials: true,
 // }
-app.use(cors())
+
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 
 const postsRouter = require('./routers/posts')

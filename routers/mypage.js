@@ -13,6 +13,12 @@ router.get('/mypage/:userId', authMiddleware, async (req, res) => {
     const user = await Users.findOne({ userId: userId });
     const userEmail = user.userEmail
     const userName = user.userName
+
+    if (!user) {
+        res.status.send({
+            errorMessage: "본인이 작성한 글이 아닙니다."
+        })
+    }
     res.send({
         userEmail: userEmail,
         userName: userName

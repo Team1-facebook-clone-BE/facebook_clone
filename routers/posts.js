@@ -5,22 +5,22 @@ const Posts = require('../schemas/posts')
 const Likes = require('../schemas/like')
 const Comments = require('../schemas/comments')
 const jwt = require('jsonwebtoken')
-const path = require('path');
+const path = require('path')
 const authMiddleware = require('../middlewares/auth-middleware')
 const multer = require('multer')
 
 // 이미지파일 처리
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, "public/images/");
+        cb(null, 'public/images/')
     },
     filename: function (req, file, cb) {
-        const ext = path.extname(file.originalname);
-        cb(null, path.basename(file.originalname, ext) + "-" + Date.now() + ext);
-    }
-});
+        const ext = path.extname(file.originalname)
+        cb(null, path.basename(file.originalname, ext) + '-' + Date.now() + ext)
+    },
+})
 
-var upload = multer({ storage: storage });
+var upload = multer({ storage: storage })
 
 // 메인페이지 모든 포스팅 보여주기
 router.get('/post', async (req, res) => {
@@ -29,7 +29,7 @@ router.get('/post', async (req, res) => {
 })
 // 게시글 상세
 router.get('/post/:postId', async (req, res) => {
-    const { postId } = req.params // => 질문 
+    const { postId } = req.params // => 질문
     const Post = await Posts.findOne({ postId })
     res.json(Post)
 })
@@ -65,36 +65,34 @@ router.post('/post', authMiddleware, upload.single('img'), async (req, res) => {
     res.send({ result: 'success' })
 })
 // 게시글 수정페이지 로딩
-router.get("/modify/:postId", authMiddleware, async (req, res, next) => {
+router.get('/modify/:postId', authMiddleware, async (req, res, next) => {
     try {
-        const { postId } = req.params;
+        const { postId } = req.params
         const { userId } = res.locals.user
-        const post = await Posts.findOne({ postId, userId }).exec();
-        res.json({ ...post });
+        const post = await Posts.findOne({ postId, userId }).exec()
+        res.json({ ...post })
     } catch (err) {
         console.error(err)
         res.status(400).send({
             errorMessage: err,
         })
     }
-});
+})
 // 게시글 수정
 router.put(
     '/post/:postId',
-    authMiddleware, async (req, res, next)=>{
-        const {postId} = req.params
-        const {userId} = res.locals.user
+    authMiddleware,
+    async (req, res, next) => {
+        const { postId } = req.params
+        const { userId } = res.locals.user
         const thisPost = await Posts.findOne({ postId })
-        
-        if(thisPost.userId == userId){
-            upload.single('img')
+        if (thisPost.userId == userId) {
             next()
-            
-        }else{
-            res.send({ errorMessage : "글을 작성한 유저가 아닙니다."})
+        } else {
+            res.send({ errorMessage: '글을 작성한 유저가 아닙니다.' })
         }
-        
-    },upload.single('img'),
+    },
+    upload.single('img'),
     async (req, res) => {
         try {
             const { userId, userName } = res.locals.user
@@ -105,8 +103,7 @@ router.put(
 
             console.log(existId)
             if (existId !== null) {
-
-                console.log("if 들어옴")
+                console.log('if 들어옴')
                 await Posts.updateOne(
                     { postId },
                     {
@@ -133,7 +130,7 @@ router.put(
             console.log('작성한 유저가 아님.')
             console.error(err)
             res.status(400).send({
-                errorMessage: err
+                errorMessage: err,
             })
         }
     }
@@ -170,36 +167,38 @@ router.delete('/post/:postId', authMiddleware, async (req, res) => {
 
             res.send({ result: 'success' })
         } else {
-            console.log("작성한 유저가 아님")
+            console.log('작성한 유저가 아님')
             res.send({ result: 'fail' })
         }
-    } catch (err) { }
+    } catch (err) {}
 })
 
-router.post("/:postId/like", authMiddleware, async (req, res) => {
-    const { userId } = res.locals.user  // 구조 분해 할당으로 {}안에 필드값을 써주면 해당하는 필드값을 찾아줌?
+router.post('/:postId/like', authMiddleware, async (req, res) => {
+    const { userId } = res.locals.user // 구조 분해 할당으로 {}안에 필드값을 써주면 해당하는 필드값을 찾아줌?
     const { postId } = req.params
     const postExist = await Posts.findOne({ postId: postId })
     const likeExist = await Likes.findOne({ userId: userId, postId: postId })
     console.log(postExist)
 
     // 좋아요
-    if (!likeExist) {   // userId, postId가 없으면
-        await Likes.create({ userId: userId, postId: postId })  // userId, postId를 create를 해주고
+    if (!likeExist) {
+        // userId, postId가 없으면
+        await Likes.create({ userId: userId, postId: postId }) // userId, postId를 create를 해주고
         await Posts.updateOne(
             { postId: postId },
-            { $set: { likeCnt: postExist.likeCnt + 1 } }    // likCnt에 + 1을 해준다.
+            { $set: { likeCnt: postExist.likeCnt + 1 } } // likCnt에 + 1을 해준다.
         )
-        res.send(result = { data: false })  // return이랑 비슷한게 res.send()
+        res.send((result = { data: false })) // return이랑 비슷한게 res.send()
     }
     // 좋아요 취소
-    else {    // userId와 postId가 있으면
-        await Likes.deleteOne({ userId: userId, postId: postId })   // userId와 postId를 삭제해준다.
+    else {
+        // userId와 postId가 있으면
+        await Likes.deleteOne({ userId: userId, postId: postId }) // userId와 postId를 삭제해준다.
         await Posts.updateOne(
             { postId: postId },
-            { $set: { likeCnt: postExist.likeCnt - 1 } }    // likeCnt에 - 1을 해준다.
+            { $set: { likeCnt: postExist.likeCnt - 1 } } // likeCnt에 - 1을 해준다.
         )
-        res.send(result = { data: true })
+        res.send((result = { data: true }))
     }
 })
 

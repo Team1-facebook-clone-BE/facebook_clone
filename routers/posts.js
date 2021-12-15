@@ -8,7 +8,6 @@ const jwt = require('jsonwebtoken')
 const path = require('path')
 const authMiddleware = require('../middlewares/auth-middleware')
 const multer = require('multer')
-const like = require('../schemas/like')
 
 // 이미지파일 처리
 var storage = multer.diskStorage({

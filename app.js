@@ -36,6 +36,7 @@ app.use('/api', express.urlencoded({ extended: false }), userRouter)
 app.use('/api', express.urlencoded({ extended: false }), commentRouter)
 app.use('/api', express.urlencoded({ extended: false }), mypageRouter)
 
+
 app.listen(port, () => {
     console.log(`listening at http://localhost:${port}`)
 })
